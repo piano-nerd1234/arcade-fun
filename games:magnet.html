@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnet Mayhem</title>
+    <style>
+        body { margin: 0; background-color: #0d1b2a; color: #00ffcc; font-family: 'Orbitron', sans-serif; overflow: hidden; }
+        #gameCanvas { display: block; margin: 0 auto; background: #1b263b; border-left: 2px solid #00ffcc; border-right: 2px solid #00ffcc; }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .top-bar { display: flex; justify-content: space-between; padding: 20px; pointer-events: auto; }
+        button { background: #00ffcc; color: #000; border: none; padding: 10px 20px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 5px; font-family: 'Orbitron', sans-serif; }
+        button:hover { background: #00ccaa; }
+        
+        #tutorial { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(13, 27, 42, 0.95); padding: 30px; border: 2px solid #00ffcc; border-radius: 10px; text-align: center; pointer-events: auto; box-shadow: 0 0 20px #00ffcc; }
+        .hidden { display: none !important; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+    <div class="ui-layer">
+        <div class="top-bar">
+            <button onclick="window.location.href='../index.html'">🔙 Back to Hub</button>
+            <div style="font-size: 20px;">Score: <span id="scoreDisplay">0</span> | High: <span id="highScoreDisplay">0</span></div>
+        </div>
+
+        <div id="tutorial">
+            <h2>🧲 Magnet Mayhem 🧲</h2>
+            <p><strong>Goal:</strong> Guide the magnetic ball through the lab.</p>
+            <p><strong>ATTRACT:</strong> Press <kbd>W</kbd>, <kbd>D</kbd>, <kbd>Up</kbd>, or <kbd>Right</kbd> to pull the ball up.</p>
+            <p><strong>REPEL:</strong> Press <kbd>A</kbd>, <kbd>S</kbd>, <kbd>Down</kbd>, or <kbd>Left</kbd> to push the ball down.</p>
+            <p>Dodge the red laser obstacles!</p>
+            <button onclick="startGame()">INITIATE SEQUENCE</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('scoreDisplay');
+        const highScoreElement = document.getElementById('highScoreDisplay');
+        const tutorial = document.getElementById('tutorial');
+
+        // Load High Score from Local Storage
+        let highScore = localStorage.getItem('magnet_highscore') || 0;
+        highScoreElement.innerText = highScore;
+
+        let gameLoop;
+        let score = 0;
+        let frame = 0;
+        let isPlaying = false;
+
+        let ball = { x: 200, y: 500, radius: 10, dy: 0, color: '#00ffcc' };
+        let obstacles = [];
+        let state = 'neutral'; // 'attract', 'repel', 'neutral'
+
+        // Keyboard Controls
+        window.addEventListener('keydown', (e) => {
+            if (['w', 'd', 'ArrowUp', 'ArrowRight'].includes(e.key)) state = 'attract';
+            if (['a', 's', 'ArrowDown', 'ArrowLeft'].includes(e.key)) state = 'repel';
+        });
+        window.addEventListener('keyup', () => { state = 'neutral'; });
+
+        function startGame() {
+            tutorial.classList.add('hidden');
+            score = 0;
+            frame = 0;
+            obstacles = [];
+            ball.y = 500;
+            isPlaying = true;
+            loop();
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('magnet_highscore', highScore); // Save Progress!
+                highScoreElement.innerText = highScore;
+            }
+            tutorial.classList.remove('hidden');
+            tutorial.querySelector('h2').innerText = "SYSTEM FAILURE";
+            tutorial.querySelector('button').innerText = "RESTART SEQUENCE";
+        }
+
+        function spawnObstacle() {
+            if (frame % 60 === 0) { // Every 60 frames
+                let width = Math.random() * 150 + 50;
+                let x = Math.random() > 0.5 ? 0 : 400 - width; // Spawn left or right
+                obstacles.push({ x: x, y: -20, width: width, height: 20 });
+            }
+        }
+
+        function update() {
+            // Physics
+            if (state === 'attract' && ball.y > 100) ball.y -= 5;
+            else if (state === 'repel' && ball.y < 580) ball.y += 5;
+            else if (ball.y < 500) ball.y += 2; // Natural pull downwards
+
+            // Move Obstacles (simulating ball moving up)
+            for (let i = 0; i < obstacles.length; i++) {
+                obstacles[i].y += 4; // Obstacle speed
+                
+                // Collision Detection
+                if (ball.x > obstacles[i].x && ball.x < obstacles[i].x + obstacles[i].width &&
+                    ball.y - ball.radius < obstacles[i].y + obstacles[i].height &&
+                    ball.y + ball.radius > obstacles[i].y) {
+                    gameOver();
+                }
+
+                // Score points
+                if (obstacles[i].y > 600 && !obstacles[i].passed) {
+                    score++;
+                    scoreElement.innerText = score;
+                    obstacles[i].passed = true;
+                }
+            }
+            // Remove off-screen obstacles
+            obstacles = obstacles.filter(obs => obs.y < 650);
+        }
+
+        function draw() {
+            // Clear screen
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Lab Background grid
+            ctx.strokeStyle = 'rgba(0, 255, 204, 0.1)';
+            for(let i=0; i<400; i+=40) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 600); ctx.stroke(); }
+            for(let i=0; i<600; i+=40) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(400, i); ctx.stroke(); }
+
+            // Draw Ball (Magnet)
+            ctx.fillStyle = ball.color;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            // Magnet glow
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = ball.color;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Draw Obstacles (Red Lasers)
+            ctx.fillStyle = '#ff003c';
+            for (let obs of obstacles) {
+                ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+            }
+        }
+
+        function loop() {
+            if (!isPlaying) return;
+            frame++;
+            spawnObstacle();
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+    </script>
+</body>
+</html>

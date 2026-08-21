@@ -1,0 +1,66 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #ffffff; /* Blank white background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columns */
+    gap: 20px;
+    padding: 20px;
+    max-width: 1000px;
+}
+
+/* Make the last two buttons center themselves on the bottom row */
+.game-grid a:nth-child(4) {
+    grid-column: 1 / 2;
+    margin-left: 50%;
+}
+.game-grid a:nth-child(5) {
+    grid-column: 2 / 3;
+    margin-left: 50%;
+}
+
+.game-btn {
+    width: 250px;
+    height: 250px; /* Square buttons */
+    background-size: cover;
+    background-position: center;
+    border-radius: 15px;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Dark overlay so the text is easy to read over the photos */
+.game-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1;
+}
+
+.game-btn span {
+    position: relative;
+    z-index: 2;
+    font-size: 2rem;
+    padding: 10px;
+    text-shadow: 2px 2px 4px #000000;
+}
+
+.game-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+}
