@@ -20,8 +20,6 @@
         
         /* Side Magnet Panel */
         #sidePanel { background: #1b263b; border: 2px solid #00ffcc; border-radius: 10px; width: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-shadow: 0 0 15px #00ffcc; }
-        
-        /* CHANGED: Rotated 180 degrees. You can change this number (0deg, 90deg, 180deg, 270deg) if you ever want to flip it again! */
         #magnetEmoji { font-size: 60px; transform: rotate(180deg); margin-bottom: 20px; }
         #arrows { font-size: 30px; font-weight: bold; color: #fff; height: 40px; text-shadow: 0 0 10px #00ffcc; }
 
@@ -74,12 +72,11 @@
         unlockedLevel = parseInt(unlockedLevel);
         const MAX_LEVEL = 20;
 
-        let gameLoop;
         let isPlaying = false;
         let currentLevel = 1;
         let frame = 0;
         
-        let ball = { x: 200, y: 500, radius: 10, color: '#b0c4de' }; // Metal ball
+        let ball = { x: 200, y: 500, radius: 10, color: '#b0c4de' }; 
         let obstacles = [];
         let state = 'neutral'; 
         let obstaclesToPass = 15;
@@ -103,8 +100,7 @@
         }
 
         function returnToMenu() {
-            isPlaying = false;
-            cancelAnimationFrame(gameLoop);
+            isPlaying = false; // Puts the Master Loop in "Park"
             gameUI.classList.add('hidden');
             menu.classList.remove('hidden');
             buildMenu();
@@ -128,8 +124,6 @@
 
         // --- GAME LOGIC ---
         function startLevel(level) {
-            cancelAnimationFrame(gameLoop); 
-            
             currentLevel = level;
             displayLevel.innerText = level;
             menu.classList.add('hidden');
@@ -140,31 +134,28 @@
             obstacles = [];
             frame = 0;
             obstaclesPassed = 0;
-            isPlaying = true;
             
-            loop();
+            isPlaying = true; // Takes the Master Loop out of "Park"
         }
 
         function levelComplete() {
-            isPlaying = false;
-            cancelAnimationFrame(gameLoop);
+            isPlaying = false; // Park
             if (currentLevel === unlockedLevel && unlockedLevel < MAX_LEVEL) {
                 unlockedLevel++;
                 localStorage.setItem('magnet_unlocked', unlockedLevel);
             }
-            alert(`SYSTEM CLEAR! Level ${currentLevel} Complete!`);
-            returnToMenu();
+            setTimeout(() => {
+                alert(`SYSTEM CLEAR! Level ${currentLevel} Complete!`);
+                returnToMenu();
+            }, 10);
         }
 
         function gameOver() {
-            isPlaying = false;
-            cancelAnimationFrame(gameLoop); 
-            
-            // Added a tiny 50 millisecond delay so the game loop officially stops BEFORE restarting
+            isPlaying = false; // Park
             setTimeout(() => {
                 alert("SYSTEM FAILURE. You hit a laser! Restarting Level...");
                 startLevel(currentLevel); 
-            }, 50);
+            }, 10);
         }
 
         function spawnObstacle() {
@@ -246,21 +237,23 @@
             ctx.fillText(`Lasers Dodged: ${obstaclesPassed} / ${obstaclesToPass}`, 10, 580);
         }
 
-        function loop() {
-            if (!isPlaying) return;
+        // --- THE MASTER LOOP ---
+        // This runs forever in the background, but only updates the game if isPlaying is true.
+        function masterLoop() {
+            requestAnimationFrame(masterLoop); // Always queue the next frame immediately
+            
+            if (!isPlaying) return; // If we died or are in the menu, do nothing!
+            
             frame++;
             spawnObstacle();
             update();
-            
-            // THIS IS THE MAGIC LOCK. It checks one last time to make sure the game isn't over before adding speed!
-            if (!isPlaying) return; 
-            
             draw();
-            gameLoop = requestAnimationFrame(loop);
         }
 
         // Initialize Menu on load
         buildMenu();
+        // Start the engine exactly ONE time
+        masterLoop(); 
     </script>
 </body>
 </html>
