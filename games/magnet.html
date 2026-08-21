@@ -20,7 +20,8 @@
         
         /* Side Magnet Panel */
         #sidePanel { background: #1b263b; border: 2px solid #00ffcc; border-radius: 10px; width: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-shadow: 0 0 15px #00ffcc; }
-        #magnetEmoji { font-size: 60px; transform: rotate(-90deg); margin-bottom: 20px; }
+        /* FIXED: Changed rotation to point the other way */
+        #magnetEmoji { font-size: 60px; transform: rotate(90deg); margin-bottom: 20px; }
         #arrows { font-size: 30px; font-weight: bold; color: #fff; height: 40px; text-shadow: 0 0 10px #00ffcc; }
 
         /* Top Bar */
@@ -102,6 +103,7 @@
 
         function returnToMenu() {
             isPlaying = false;
+            cancelAnimationFrame(gameLoop); // <-- Stops the speed bug if you quit
             gameUI.classList.add('hidden');
             menu.classList.remove('hidden');
             buildMenu();
@@ -125,6 +127,8 @@
 
         // --- GAME LOGIC ---
         function startLevel(level) {
+            cancelAnimationFrame(gameLoop); // <-- FIXED: Kills old loop before starting a new one
+            
             currentLevel = level;
             displayLevel.innerText = level;
             menu.classList.add('hidden');
@@ -142,6 +146,7 @@
 
         function levelComplete() {
             isPlaying = false;
+            cancelAnimationFrame(gameLoop);
             if (currentLevel === unlockedLevel && unlockedLevel < MAX_LEVEL) {
                 unlockedLevel++;
                 localStorage.setItem('magnet_unlocked', unlockedLevel);
@@ -152,6 +157,7 @@
 
         function gameOver() {
             isPlaying = false;
+            cancelAnimationFrame(gameLoop); // <-- Stops the loop completely on death
             alert("SYSTEM FAILURE. You hit a laser! Restarting Level...");
             startLevel(currentLevel); // Instant restart
         }
@@ -245,7 +251,8 @@
             spawnObstacle();
             update();
             draw();
-            requestAnimationFrame(loop);
+            // FIXED: Connected the frame request to our gameLoop variable
+            gameLoop = requestAnimationFrame(loop);
         }
 
         // Initialize Menu on load
