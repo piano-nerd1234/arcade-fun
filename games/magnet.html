@@ -20,8 +20,9 @@
         
         /* Side Magnet Panel */
         #sidePanel { background: #1b263b; border: 2px solid #00ffcc; border-radius: 10px; width: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; box-shadow: 0 0 15px #00ffcc; }
-        /* FIXED: Changed rotation to point the other way */
-        #magnetEmoji { font-size: 60px; transform: rotate(90deg); margin-bottom: 20px; }
+        
+        /* CHANGED: Rotated 180 degrees. You can change this number (0deg, 90deg, 180deg, 270deg) if you ever want to flip it again! */
+        #magnetEmoji { font-size: 60px; transform: rotate(180deg); margin-bottom: 20px; }
         #arrows { font-size: 30px; font-weight: bold; color: #fff; height: 40px; text-shadow: 0 0 10px #00ffcc; }
 
         /* Top Bar */
@@ -103,7 +104,7 @@
 
         function returnToMenu() {
             isPlaying = false;
-            cancelAnimationFrame(gameLoop); // <-- Stops the speed bug if you quit
+            cancelAnimationFrame(gameLoop);
             gameUI.classList.add('hidden');
             menu.classList.remove('hidden');
             buildMenu();
@@ -127,7 +128,7 @@
 
         // --- GAME LOGIC ---
         function startLevel(level) {
-            cancelAnimationFrame(gameLoop); // <-- FIXED: Kills old loop before starting a new one
+            cancelAnimationFrame(gameLoop); 
             
             currentLevel = level;
             displayLevel.innerText = level;
@@ -157,18 +158,21 @@
 
         function gameOver() {
             isPlaying = false;
-            cancelAnimationFrame(gameLoop); // <-- Stops the loop completely on death
-            alert("SYSTEM FAILURE. You hit a laser! Restarting Level...");
-            startLevel(currentLevel); // Instant restart
+            cancelAnimationFrame(gameLoop); 
+            
+            // Added a tiny 50 millisecond delay so the game loop officially stops BEFORE restarting
+            setTimeout(() => {
+                alert("SYSTEM FAILURE. You hit a laser! Restarting Level...");
+                startLevel(currentLevel); 
+            }, 50);
         }
 
         function spawnObstacle() {
-            // Gap gets tighter as level increases. Level 1 = 180px gap, Level 20 = 60px gap.
             let gapSize = 180 - ((currentLevel - 1) * 6); 
             if (gapSize < 50) gapSize = 50; 
 
             if (frame % 80 === 0 && obstaclesPassed + obstacles.length < obstaclesToPass) { 
-                let gapX = Math.random() * (400 - gapSize); // Random position for the safe gap
+                let gapX = Math.random() * (400 - gapSize);
                 obstacles.push({ y: -20, gapX: gapX, gapWidth: gapSize, height: 15 });
             }
         }
@@ -180,13 +184,12 @@
 
             // Move Lasers
             for (let i = 0; i < obstacles.length; i++) {
-                obstacles[i].y += 4 + (currentLevel * 0.15); // Lasers get slightly faster each level
+                obstacles[i].y += 4 + (currentLevel * 0.15); 
                 
                 // Collision Detection
                 if (ball.y - ball.radius < obstacles[i].y + obstacles[i].height &&
                     ball.y + ball.radius > obstacles[i].y) {
                     
-                    // If ball is OUTSIDE the safe gap, it hits the laser
                     if (ball.x - ball.radius < obstacles[i].gapX || ball.x + ball.radius > obstacles[i].gapX + obstacles[i].gapWidth) {
                         gameOver();
                         return;
@@ -208,7 +211,6 @@
         }
 
         function draw() {
-            // Clear screen
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Draw Lab Background grid
@@ -221,23 +223,22 @@
             ctx.beginPath();
             ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
             ctx.fill();
+            
             // Shiny metallic effect
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
             ctx.arc(ball.x - 3, ball.y - 3, 3, 0, Math.PI * 2);
             ctx.fill();
 
-            // Draw Lasers (with safe gap)
+            // Draw Lasers
             ctx.fillStyle = '#ff003c';
             ctx.shadowBlur = 10;
             ctx.shadowColor = '#ff003c';
             for (let obs of obstacles) {
-                // Left side of laser
                 ctx.fillRect(0, obs.y, obs.gapX, obs.height);
-                // Right side of laser
                 ctx.fillRect(obs.gapX + obs.gapWidth, obs.y, 400 - (obs.gapX + obs.gapWidth), obs.height);
             }
-            ctx.shadowBlur = 0; // Reset shadow so other things don't glow
+            ctx.shadowBlur = 0; 
             
             // Draw Progress text
             ctx.fillStyle = '#ffffff';
@@ -250,8 +251,11 @@
             frame++;
             spawnObstacle();
             update();
+            
+            // THIS IS THE MAGIC LOCK. It checks one last time to make sure the game isn't over before adding speed!
+            if (!isPlaying) return; 
+            
             draw();
-            // FIXED: Connected the frame request to our gameLoop variable
             gameLoop = requestAnimationFrame(loop);
         }
 
