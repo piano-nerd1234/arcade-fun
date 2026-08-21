@@ -5,35 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catch the Wrong Thing</title>
     <style>
-        body { margin: 0; background-color: #87CEEB; color: #fff; font-family: 'Permanent Marker', cursive, sans-serif; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; }
+        /* Pixelated aesthetic via CSS */
+        body { margin: 0; background-color: #222; color: #fff; font-family: 'Permanent Marker', cursive, sans-serif; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; }
         
         /* Menus */
-        .menu-container { text-align: center; background: rgba(34, 139, 34, 0.9); padding: 40px; border: 4px solid #006400; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 10; max-width: 600px; }
-        h1 { font-size: 40px; color: #FFD700; text-shadow: 2px 2px 0 #000; margin-top: 0; }
+        .menu-container { text-align: center; background: rgba(0, 0, 0, 0.85); padding: 40px; border: 4px solid #fff; border-radius: 0px; box-shadow: 10px 10px 0px #000; z-index: 10; max-width: 600px; }
+        h1 { font-size: 40px; color: #FFD700; text-shadow: 4px 4px 0px #aa0000; margin-top: 0; letter-spacing: 2px; }
         h2 { font-size: 28px; text-shadow: 2px 2px 0 #000; }
         
-        /* Buttons */
-        button { background: #FFD700; color: #000; border: 2px solid #000; padding: 15px 30px; font-size: 20px; font-weight: bold; cursor: pointer; border-radius: 8px; font-family: 'Permanent Marker', cursive; margin: 10px; transition: 0.2s; box-shadow: 3px 3px 0 #000; }
-        button:hover { transform: translateY(-3px); box-shadow: 6px 6px 0 #000; }
-        button:disabled { background: #555; color: #888; box-shadow: none; cursor: not-allowed; transform: none; }
+        /* Retro Buttons */
+        button { background: #FFD700; color: #000; border: 4px solid #fff; padding: 15px 30px; font-size: 20px; font-weight: bold; cursor: pointer; font-family: 'Permanent Marker', cursive; margin: 10px; box-shadow: 5px 5px 0px #000; transition: 0.1s; text-transform: uppercase; }
+        button:active { transform: translate(5px, 5px); box-shadow: 0px 0px 0px #000; }
+        button:disabled { background: #555; color: #888; border-color: #444; box-shadow: none; cursor: not-allowed; }
 
         /* Level Grid */
-        .level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 20px; }
+        .level-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; margin-top: 20px; }
         .level-btn { padding: 10px; font-size: 24px; }
 
         /* Top Bar & Progress */
         .top-bar { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
-        .progress-container { flex-grow: 1; background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 10px; height: 25px; margin: 0 20px; position: relative; overflow: hidden; display: none; }
-        #progressBar { height: 100%; background: #FFD700; width: 0%; transition: width 0.1s linear; }
-        .time-text { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-size: 16px; font-family: sans-serif; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+        .progress-container { flex-grow: 1; background: #000; border: 4px solid #fff; height: 25px; margin: 0 20px; position: relative; display: none; }
+        #progressBar { height: 100%; background: #00ff00; width: 0%; transition: width 0.1s linear; }
+        .time-text { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-size: 16px; font-weight: bold; text-shadow: 1px 1px 0px #000; color: #fff;}
 
-        #gameCanvas { background: linear-gradient(#87CEEB, #90EE90); border: 4px solid #006400; border-radius: 10px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.3); cursor: none; }
+        /* Sharp edges for the canvas */
+        #gameCanvas { background: #5c94fc; border: 6px solid #fff; display: none; box-shadow: 10px 10px 0px rgba(0,0,0,0.5); cursor: none; image-rendering: pixelated; }
         .hidden { display: none !important; }
         
         /* Briefing Screen */
-        .briefing-box { display: flex; justify-content: space-around; background: rgba(0,0,0,0.3); padding: 15px; border-radius: 10px; margin: 15px 0; }
+        .briefing-box { display: flex; justify-content: space-around; background: #222; padding: 15px; border: 2px dashed #fff; margin: 15px 0; }
         .briefing-col { display: flex; flex-direction: column; align-items: center; }
-        .emoji-list { font-size: 40px; }
+        .emoji-list { font-size: 40px; margin-top: 10px; image-rendering: pixelated; }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
 </head>
@@ -45,24 +47,23 @@
             <div id="progressBar"></div>
             <div class="time-text">TIME SURVIVED</div>
         </div>
-        <div style="font-size: 24px; text-shadow: 2px 2px 0 #000; display: none;" id="scoreDisplay">Score: 0</div>
+        <div style="font-size: 24px; text-shadow: 2px 2px 0 #000; display: none; color: #FFD700;" id="scoreDisplay">Score: 0</div>
     </div>
 
     <!-- LEVEL SELECT MENU -->
     <div id="mainMenu" class="menu-container">
-        <h1>Catch the Wrong Thing</h1>
-        <p>Memorize what to catch and what to avoid.</p>
-        <p>Use <strong>A/D</strong>, <strong>Left/Right Arrows</strong>, or <strong>Mouse</strong> to move your bucket.</p>
+        <h1>Pixel Catch</h1>
+        <p style="color: #00ff00;">✅ You MUST catch every target item!</p>
+        <p style="color: #ff3333;">❌ If you catch a wrong thing OR drop a target, you lose!</p>
         <div class="level-grid" id="levelGrid"></div>
     </div>
 
     <!-- TUTORIAL / BRIEFING SCREEN -->
     <div id="briefingMenu" class="menu-container hidden">
-        <h2 id="briefingTitle">Level 1</h2>
-        <p>Memorize your targets before time runs out!</p>
+        <h2 id="briefingTitle" style="color: #FFD700;">Level 1</h2>
         <div class="briefing-box">
             <div class="briefing-col">
-                <h3 style="color: #00FF00; margin: 0;">✅ CATCH ✅</h3>
+                <h3 style="color: #00FF00; margin: 0;">✅ CATCH ALL ✅</h3>
                 <div class="emoji-list" id="catchList">🐸</div>
             </div>
             <div class="briefing-col">
@@ -80,6 +81,9 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        // Force crisp pixel rendering!
+        ctx.imageSmoothingEnabled = false; 
+
         const mainMenu = document.getElementById('mainMenu');
         const briefingMenu = document.getElementById('briefingMenu');
         const progressContainer = document.getElementById('progressContainer');
@@ -97,19 +101,20 @@
         let frame = 0;
         let timeRemaining = 0;
         let levelDuration = 0;
+        let cloudOffset = 0;
         
-        let bucket = { x: 260, y: 620, width: 80, height: 60 };
+        let bucket = { x: 260, y: 580, width: 80, height: 80 };
         let fallingItems = [];
 
-        // LEVEL DATA (Defines what drops and how hard it is)
+        // LEVEL DATA
         const levelData = {
-            1: { time: 20, speed: 3, spawnRate: 60, catch: ['🐸'], avoid: ['🦎'] },
+            1: { time: 20, speed: 3.5, spawnRate: 60, catch: ['🐸'], avoid: ['🦎'] },
             2: { time: 25, speed: 4, spawnRate: 55, catch: ['🐸'], avoid: ['🦎', '🐍'] },
-            3: { time: 25, speed: 4, spawnRate: 50, catch: ['🐸', '🦋'], avoid: ['🦎', '🐍'] },
+            3: { time: 25, speed: 4.5, spawnRate: 50, catch: ['🐸', '🦋'], avoid: ['🦎', '🐍'] },
             4: { time: 30, speed: 5, spawnRate: 45, catch: ['🐸', '🦋'], avoid: ['🦎', '🐍', '🕷️'] },
-            5: { time: 35, speed: 5, spawnRate: 40, catch: ['🐸', '🦋', '🐞'], avoid: ['🦎', '🐍', '🕷️'] },
+            5: { time: 35, speed: 5.5, spawnRate: 40, catch: ['🐸', '🦋', '🐞'], avoid: ['🦎', '🐍', '🕷️'] },
             6: { time: 35, speed: 6, spawnRate: 35, catch: ['🐸', '🐞'], avoid: ['🦎', '🐍', '🕷️', '🦂'] },
-            7: { time: 40, speed: 6, spawnRate: 30, catch: ['🦋', '🐞', '🐢'], avoid: ['🦎', '🐍', '🦂', '🦇'] },
+            7: { time: 40, speed: 6.5, spawnRate: 30, catch: ['🦋', '🐞', '🐢'], avoid: ['🦎', '🐍', '🦂', '🦇'] },
             8: { time: 45, speed: 7, spawnRate: 25, catch: ['🐸', '🐢', '🐦'], avoid: ['🦎', '🐍', '🕷️', '🦇'] },
             9: { time: 50, speed: 8, spawnRate: 20, catch: ['🐞', '🐦', '🦋'], avoid: ['🦎', '🐍', '🦂', '🦇', '🐊'] },
             10: { time: 60, speed: 9, spawnRate: 15, catch: ['🐸', '🦋', '🐞', '🐢', '🐦'], avoid: ['🦎', '🐍', '🕷️', '🦂', '🦇', '🐊'] }
@@ -117,6 +122,22 @@
 
         let currentActiveList = [];
         let currentAvoidList = [];
+
+        // THE MAGIC PIXELATOR
+        // This takes standard emojis, draws them tiny, and caches them to be drawn HUGE and blocky later.
+        const pixelCache = {};
+        function getPixelatedImage(emoji) {
+            if (pixelCache[emoji]) return pixelCache[emoji];
+            let offscreen = document.createElement('canvas');
+            offscreen.width = 16; offscreen.height = 16;
+            let oCtx = offscreen.getContext('2d');
+            oCtx.font = '12px Arial';
+            oCtx.textAlign = 'center';
+            oCtx.textBaseline = 'middle';
+            oCtx.fillText(emoji, 8, 9);
+            pixelCache[emoji] = offscreen;
+            return offscreen;
+        }
 
         // MENU SYSTEM
         function buildMenu() {
@@ -173,7 +194,7 @@
             const data = levelData[currentLevel];
             currentActiveList = data.catch;
             currentAvoidList = data.avoid;
-            levelDuration = data.time * 60; // Convert seconds to frames (assuming 60fps)
+            levelDuration = data.time * 60; 
             timeRemaining = levelDuration;
             
             briefingMenu.classList.add('hidden');
@@ -204,10 +225,14 @@
             returnToMenu();
         }
 
-        function gameOver(badEmoji) {
+        function gameOver(type, emoji) {
             isPlaying = false;
-            alert(`GAME OVER! You caught a ${badEmoji}!\nPay attention to the Avoid list!`);
-            showBriefing(currentLevel); // Send back to briefing screen for immediate retry
+            if (type === 'caughtBad') {
+                alert(`GAME OVER! You caught a ${emoji}!\nPay attention to the Avoid list!`);
+            } else if (type === 'missedGood') {
+                alert(`GAME OVER! You let a ${emoji} hit the floor!\nYou MUST catch every target item!`);
+            }
+            showBriefing(currentLevel); 
             canvas.style.display = 'none';
             progressContainer.style.display = 'none';
             scoreDisplay.style.display = 'none';
@@ -216,27 +241,26 @@
         function spawnItem() {
             const data = levelData[currentLevel];
             if (frame % data.spawnRate === 0) {
-                // 50% chance for a good item, 50% chance for a bad item
                 let isGood = Math.random() > 0.5;
                 let pool = isGood ? currentActiveList : currentAvoidList;
                 let emoji = pool[Math.floor(Math.random() * pool.length)];
                 
                 fallingItems.push({
                     x: Math.random() * (canvas.width - 40) + 20,
-                    y: -30,
+                    y: -40,
                     emoji: emoji,
                     isGood: isGood,
-                    speed: data.speed + (Math.random() * 2) // Slight random speed variation
+                    speed: data.speed + (Math.random() * 2) 
                 });
             }
         }
 
         function update() {
             // Bucket Keyboard Movement
-            if ((keys.a || keys.ArrowLeft) && bucket.x > 0) bucket.x -= 8;
-            if ((keys.d || keys.ArrowRight) && bucket.x < canvas.width - bucket.width) bucket.x += 8;
+            if ((keys.a || keys.ArrowLeft) && bucket.x > 0) bucket.x -= 10;
+            if ((keys.d || keys.ArrowRight) && bucket.x < canvas.width - bucket.width) bucket.x += 10;
 
-            // Keep bucket in bounds for mouse
+            // Keep bucket in bounds
             if (bucket.x < 0) bucket.x = 0;
             if (bucket.x + bucket.width > canvas.width) bucket.x = canvas.width - bucket.width;
 
@@ -250,52 +274,97 @@
                 return;
             }
 
+            cloudOffset += 0.5;
+            if (cloudOffset > 600) cloudOffset = 0;
+
             // Move Items
             for (let i = 0; i < fallingItems.length; i++) {
                 let item = fallingItems[i];
                 item.y += item.speed;
 
+                // Hitbox for the metal bucket itself (right side of the pixel guy)
+                let bucketHitX = bucket.x + 35; 
+                let bucketHitY = bucket.y + 20;
+                let bucketHitW = 45;
+                let bucketHitH = 30;
+
                 // Collision with Bucket
-                if (item.y + 15 > bucket.y && item.y - 15 < bucket.y + bucket.height &&
-                    item.x + 15 > bucket.x && item.x - 15 < bucket.x + bucket.width) {
+                if (item.y + 20 > bucketHitY && item.y - 20 < bucketHitY + bucketHitH &&
+                    item.x + 20 > bucketHitX && item.x - 20 < bucketHitX + bucketHitW) {
                     
                     if (item.isGood) {
                         score += 10;
                         scoreDisplay.innerText = `Score: ${score}`;
-                        item.caught = true; // Mark to remove
+                        item.caught = true; 
                     } else {
-                        gameOver(item.emoji);
+                        gameOver('caughtBad', item.emoji);
                         return;
+                    }
+                }
+
+                // CHANGED MECHANIC: Did it hit the floor?
+                if (item.y > canvas.height + 20 && !item.caught) {
+                    if (item.isGood) {
+                        // YOU MISSED A TARGET! GAME OVER!
+                        gameOver('missedGood', item.emoji);
+                        return;
+                    } else {
+                        item.caught = true; // Safe to ignore bad items hitting the floor
                     }
                 }
             }
 
-            // Clean up off-screen or caught items
-            fallingItems = fallingItems.filter(item => item.y < canvas.height + 50 && !item.caught);
+            fallingItems = fallingItems.filter(item => !item.caught);
         }
 
         function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Sky
+            ctx.fillStyle = '#5c94fc';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Bucket Body
-            ctx.fillStyle = '#8B4513'; // SaddleBrown
-            ctx.beginPath();
-            ctx.moveTo(bucket.x, bucket.y);
-            ctx.lineTo(bucket.x + bucket.width, bucket.y);
-            ctx.lineTo(bucket.x + bucket.width - 10, bucket.y + bucket.height);
-            ctx.lineTo(bucket.x + 10, bucket.y + bucket.height);
-            ctx.fill();
+            // Draw Pixel Clouds
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(cloudOffset, 100, 60, 20);
+            ctx.fillRect(cloudOffset + 20, 80, 40, 20);
+            ctx.fillRect(cloudOffset - 400, 200, 80, 30);
+            ctx.fillRect(cloudOffset - 380, 170, 40, 30);
+
+            // Draw Ground
+            ctx.fillStyle = '#00a800'; // Retro grass green
+            ctx.fillRect(0, canvas.height - 40, canvas.width, 40);
+
+            // DRAW 8-BIT GUY HOLDING BUCKET
+            let bx = bucket.x;
+            let by = bucket.y;
             
-            // Draw Bucket Rim
-            ctx.fillStyle = '#A0522D'; // Sienna
-            ctx.fillRect(bucket.x - 5, bucket.y, bucket.width + 10, 10);
+            // Guy - Head (Skin tone)
+            ctx.fillStyle = '#ffcc99';
+            ctx.fillRect(bx + 10, by, 25, 25);
+            // Guy - Eye
+            ctx.fillStyle = '#000';
+            ctx.fillRect(bx + 25, by + 5, 5, 5);
+            // Guy - Shirt (Red)
+            ctx.fillStyle = '#cc0000';
+            ctx.fillRect(bx + 5, by + 25, 35, 35);
+            // Guy - Pants (Blue)
+            ctx.fillStyle = '#0000cc';
+            ctx.fillRect(bx + 10, by + 60, 25, 20);
+            
+            // Metal Bucket (Held out in front)
+            ctx.fillStyle = '#888888';
+            ctx.fillRect(bx + 35, by + 20, 45, 40);
+            // Bucket rim / shadow
+            ctx.fillStyle = '#555555';
+            ctx.fillRect(bx + 35, by + 20, 45, 10);
+            ctx.fillStyle = '#444444';
+            ctx.fillRect(bx + 40, by + 25, 35, 35); // Inside hollow
 
-            // Draw Items
-            ctx.font = '30px Arial'; // Arial renders emojis best on canvas
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            // Draw Pixelated Items
+            ctx.imageSmoothingEnabled = false; // Ensure sharp edges
             for (let item of fallingItems) {
-                ctx.fillText(item.emoji, item.x, item.y);
+                let img = getPixelatedImage(item.emoji);
+                // Draw the tiny 16x16 canvas stretched to 48x48
+                ctx.drawImage(img, 0, 0, 16, 16, item.x - 24, item.y - 24, 48, 48);
             }
         }
 
@@ -309,7 +378,7 @@
             draw();
         }
 
-        masterLoop(); // Start engine!
+        masterLoop(); 
     </script>
 </body>
 </html>
